@@ -5,13 +5,725 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sentence Builder Game</title>
     <style>
-        /* 原始 CSS 太長，此處略過，保留在完整檔案中 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .score {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .level {
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .question-section {
+            background: #e3f2fd;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #2196f3;
+        }
+
+        .question-title {
+            font-size: 1.3em;
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .target-sentence {
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px dashed #ccc;
+            font-size: 1.1em;
+            color: #666;
+            text-align: center;
+            min-height: 60px;
+        }
+
+        .words-section {
+            background: #f3e5f5;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #9c27b0;
+        }
+
+        .words-title {
+            font-size: 1.3em;
+            color: #7b1fa2;
+            margin-bottom: 15px;
+        }
+
+        .word-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .word-item {
+            background: #fff;
+            padding: 12px 18px;
+            border-radius: 25px;
+            border: 2px solid #9c27b0;
+            cursor: grab;
+            font-weight: bold;
+            color: #7b1fa2;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .word-item:hover {
+            background: #9c27b0;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .word-item:active {
+            cursor: grabbing;
+        }
+
+        .word-item.used {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .sentence-builder {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 3px solid #9c27b0;
+            min-height: 80px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .sentence-builder.drag-over {
+            background: #f3e5f5;
+            border-color: #e91e63;
+        }
+
+        .sentence-builder.empty::after {
+            content: "Drag words here to build your sentence! 👆";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #999;
+            font-style: italic;
+            pointer-events: none;
+        }
+
+        .placed-word {
+            background: #4caf50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .placed-word:hover {
+            background: #45a049;
+        }
+
+        .placed-word::after {
+            content: "×";
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #f44336;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .placed-word:hover::after {
+            opacity: 1;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 20px 0;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.5s ease;
+        }
+
+        .feedback.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            height: 100%;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .teacher-panel {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #ff9800;
+            margin-top: 30px;
+        }
+
+        .teacher-title {
+            color: #f57c00;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ff9800;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- HTML 主體結構，此處略過，保留在完整檔案中 -->
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🏗️ Sentence Builder</h1>
+        </div>
+
+        <div class="score-board">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="level" id="level">Level 1</div>
+            <div class="score">Correct: <span id="correct">0</span>/<span id="total">0</span></div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div class="game-area">
+            <div class="question-section">
+                <h3 class="question-title">📝 Build This Sentence:</h3>
+                <div class="question-text" id="questionText">
+                    Build a sentence using the words on the right. Follow the pattern shown below.
+                </div>
+                <div class="target-sentence" id="targetSentence">
+                    I like apples.
+                </div>
+            </div>
+
+            <div class="words-section">
+                <h3 class="words-title">🎯 Word Bank</h3>
+                <div class="word-bank" id="wordBank">
+                    <!-- Words will be populated by JavaScript -->
+                </div>
+                <h4 style="margin-bottom: 10px; color: #7b1fa2;">Your Sentence:</h4>
+                <div class="sentence-builder" id="sentenceBuilder">
+                    <!-- Student builds sentence here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="checkAnswer()">✅ Check Answer</button>
+            <button class="btn btn-secondary" onclick="getHint()">💡 Get Hint</button>
+            <button class="btn btn-danger" onclick="clearSentence()">🗑️ Clear</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <div class="teacher-panel">
+            <h3 class="teacher-title">👩‍🏫 Teacher Dashboard</h3>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="statAttempts">0</div>
+                    <div class="stat-label">Total Attempts</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statAccuracy">0%</div>
+                    <div class="stat-label">Accuracy Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statTime">0:00</div>
+                    <div class="stat-label">Time Spent</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statHints">0</div>
+                    <div class="stat-label">Hints Used</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // JavaScript 遊戲邏輯，此處略過，保留在完整檔案中
+        class SentenceBuilderGame {
+            constructor() {
+                this.currentLevel = 1;
+                this.score = 0;
+                this.correctAnswers = 0;
+                this.totalAttempts = 0;
+                this.hintsUsed = 0;
+                this.startTime = Date.now();
+                this.currentQuestion = 0;
+                
+                this.questions = [
+                    {
+                        target: "I like apples.",
+                        words: ["I", "like", "apples", ".", "hate", "bananas"],
+                        instruction: "Make a sentence about liking apples."
+                    },
+                    {
+                        target: "She is reading a book.",
+                        words: ["She", "is", "reading", "a", "book", ".", "watching", "TV"],
+                        instruction: "Create a sentence about someone reading."
+                    },
+                    {
+                        target: "The cat sits on the mat.",
+                        words: ["The", "cat", "sits", "on", "the", "mat", ".", "dog", "under"],
+                        instruction: "Build a sentence about where the cat sits."
+                    },
+                    {
+                        target: "We are going to school.",
+                        words: ["We", "are", "going", "to", "school", ".", "home", "coming"],
+                        instruction: "Make a sentence about going to school."
+                    },
+                    {
+                        target: "My mother cooks delicious food.",
+                        words: ["My", "mother", "cooks", "delicious", "food", ".", "father", "terrible"],
+                        instruction: "Create a sentence about mother's cooking."
+                    }
+                ];
+                
+                this.currentSentence = [];
+                this.init();
+            }
+
+            init() {
+                this.loadQuestion();
+                this.setupDragAndDrop();
+                this.updateTimer();
+            }
+
+            loadQuestion() {
+                const question = this.questions[this.currentQuestion];
+                document.getElementById('questionText').textContent = question.instruction;
+                document.getElementById('targetSentence').textContent = question.target;
+                
+                // Shuffle words
+                const shuffledWords = [...question.words].sort(() => Math.random() - 0.5);
+                
+                const wordBank = document.getElementById('wordBank');
+                wordBank.innerHTML = '';
+                
+                shuffledWords.forEach(word => {
+                    const wordElement = document.createElement('div');
+                    wordElement.className = 'word-item';
+                    wordElement.textContent = word;
+                    wordElement.draggable = true;
+                    wordElement.dataset.word = word;
+                    wordBank.appendChild(wordElement);
+                });
+
+                this.updateProgress();
+            }
+
+            setupDragAndDrop() {
+                const sentenceBuilder = document.getElementById('sentenceBuilder');
+                const wordBank = document.getElementById('wordBank');
+
+                // Drag start
+                wordBank.addEventListener('dragstart', (e) => {
+                    if (e.target.classList.contains('word-item')) {
+                        e.dataTransfer.setData('text/plain', e.target.dataset.word);
+                        e.target.style.opacity = '0.5';
+                    }
+                });
+
+                // Drag end
+                wordBank.addEventListener('dragend', (e) => {
+                    e.target.style.opacity = '1';
+                });
+
+                // Drop zone events
+                sentenceBuilder.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    sentenceBuilder.classList.add('drag-over');
+                });
+
+                sentenceBuilder.addEventListener('dragleave', () => {
+                    sentenceBuilder.classList.remove('drag-over');
+                });
+
+                sentenceBuilder.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const word = e.dataTransfer.getData('text/plain');
+                    this.addWordToSentence(word);
+                    sentenceBuilder.classList.remove('drag-over');
+                });
+
+                // Click to add word (for mobile/touch devices)
+                wordBank.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('word-item') && !e.target.classList.contains('used')) {
+                        this.addWordToSentence(e.target.dataset.word);
+                    }
+                });
+            }
+
+            addWordToSentence(word) {
+                this.currentSentence.push(word);
+                this.renderSentence();
+                this.markWordAsUsed(word);
+            }
+
+            renderSentence() {
+                const sentenceBuilder = document.getElementById('sentenceBuilder');
+                sentenceBuilder.innerHTML = '';
+                
+                if (this.currentSentence.length === 0) {
+                    sentenceBuilder.classList.add('empty');
+                } else {
+                    sentenceBuilder.classList.remove('empty');
+                }
+
+                this.currentSentence.forEach((word, index) => {
+                    const wordElement = document.createElement('div');
+                    wordElement.className = 'placed-word';
+                    wordElement.textContent = word;
+                    wordElement.onclick = () => this.removeWordFromSentence(index);
+                    sentenceBuilder.appendChild(wordElement);
+                });
+            }
+
+            removeWordFromSentence(index) {
+                const removedWord = this.currentSentence.splice(index, 1)[0];
+                this.renderSentence();
+                this.markWordAsAvailable(removedWord);
+            }
+
+            markWordAsUsed(word) {
+                const wordElements = document.querySelectorAll('.word-item');
+                wordElements.forEach(element => {
+                    if (element.dataset.word === word && !element.classList.contains('used')) {
+                        element.classList.add('used');
+                        return;
+                    }
+                });
+            }
+
+            markWordAsAvailable(word) {
+                const wordElements = document.querySelectorAll('.word-item');
+                wordElements.forEach(element => {
+                    if (element.dataset.word === word) {
+                        element.classList.remove('used');
+                    }
+                });
+            }
+
+            checkAnswer() {
+                const userSentence = this.currentSentence.join(' ');
+                const correctSentence = this.questions[this.currentQuestion].target;
+                
+                this.totalAttempts++;
+                
+                if (userSentence === correctSentence) {
+                    this.showFeedback('🎉 Excellent! Perfect sentence!', 'correct');
+                    this.correctAnswers++;
+                    this.score += 10;
+                    
+                    setTimeout(() => {
+                        this.nextQuestion();
+                    }, 2000);
+                } else {
+                    this.showFeedback('❌ Not quite right. Try again!', 'incorrect');
+                }
+                
+                this.updateStats();
+            }
+
+            showFeedback(message, type) {
+                const feedback = document.getElementById('feedback');
+                feedback.textContent = message;
+                feedback.className = `feedback ${type} show`;
+                
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                }, 3000);
+            }
+
+            getHint() {
+                this.hintsUsed++;
+                const question = this.questions[this.currentQuestion];
+                const targetWords = question.target.split(' ');
+                
+                if (this.currentSentence.length < targetWords.length) {
+                    const nextWord = targetWords[this.currentSentence.length];
+                    this.showFeedback(`💡 Hint: The next word is "${nextWord}"`, 'correct');
+                } else {
+                    this.showFeedback('💡 Hint: Check if all words are in the right order!', 'correct');
+                }
+                
+                this.updateStats();
+            }
+
+            clearSentence() {
+                // Mark all words as available again
+                this.currentSentence.forEach(word => {
+                    this.markWordAsAvailable(word);
+                });
+                
+                this.currentSentence = [];
+                this.renderSentence();
+            }
+
+            nextQuestion() {
+                this.currentQuestion++;
+                
+                if (this.currentQuestion >= this.questions.length) {
+                    this.showFeedback('🏆 Congratulations! You completed all sentences!', 'correct');
+                    this.currentQuestion = 0; // Reset to first question
+                    this.currentLevel++;
+                    document.getElementById('level').textContent = `Level ${this.currentLevel}`;
+                }
+                
+                this.clearSentence();
+                this.loadQuestion();
+            }
+
+            updateStats() {
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('correct').textContent = this.correctAnswers;
+                document.getElementById('total').textContent = this.totalAttempts;
+                
+                // Teacher dashboard stats
+                document.getElementById('statAttempts').textContent = this.totalAttempts;
+                
+                const accuracy = this.totalAttempts > 0 ? 
+                    Math.round((this.correctAnswers / this.totalAttempts) * 100) : 0;
+                document.getElementById('statAccuracy').textContent = `${accuracy}%`;
+                
+                document.getElementById('statHints').textContent = this.hintsUsed;
+            }
+
+            updateProgress() {
+                const progress = ((this.currentQuestion + 1) / this.questions.length) * 100;
+                document.getElementById('progressFill').style.width = `${progress}%`;
+            }
+
+            updateTimer() {
+                setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    document.getElementById('statTime').textContent = 
+                        `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+        }
+
+        // Global functions for buttons
+        let game;
+
+        function checkAnswer() {
+            game.checkAnswer();
+        }
+
+        function getHint() {
+            game.getHint();
+        }
+
+        function clearSentence() {
+            game.clearSentence();
+        }
+
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            game = new SentenceBuilderGame();
+        });
     </script>
 </body>
 </html>
